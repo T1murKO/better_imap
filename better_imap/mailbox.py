@@ -109,17 +109,17 @@ class MailBox:
             date_filter = since.strftime("%d-%b-%Y")
             search_criteria += f" SINCE {date_filter}"
 
-        if allowed_senders:
-            senders_criteria = " ".join(
-                [f'FROM "{sender}"' for sender in allowed_senders]
-            )
-            search_criteria += f" {senders_criteria}"
+        # if allowed_senders:
+        #     senders_criteria = " ".join(
+        #         [f'FROM "{sender}"' for sender in allowed_senders]
+        #     )
+        #     search_criteria += f" {senders_criteria}"
 
-        if allowed_receivers:
-            receivers_criteria = " ".join(
-                [f'TO "{receiver}"' for receiver in allowed_receivers]
-            )
-            search_criteria += f" {receivers_criteria}"
+        # if allowed_receivers:
+        #     receivers_criteria = " ".join(
+        #         [f'TO "{receiver}"' for receiver in allowed_receivers]
+        #     )
+        #     search_criteria += f" {receivers_criteria}"
 
         status, data = await self._imap.search(
             search_criteria, charset=self._service.encoding
@@ -133,6 +133,8 @@ class MailBox:
 
         email_ids = data[0].split()
         email_ids = email_ids[::-1]
+        # print(f"({len(email_ids)}) {email_ids}")
+        # print(allowed_receivers)
         messages = []
         for e_id_str in email_ids:
             message = await self.fetch_message_by_id(
@@ -140,6 +142,19 @@ class MailBox:
             )
 
             if since and message.date < since:
+                # print(f"[{message.id}] {message.sender} IGNORED -> {message.receiver}"
+                #       f"\n\t[{since.hour}:{since.minute}:{since.second}]"
+                #       f"\n\t[{message.date.hour}:{message.date.minute}:{message.date.second}]")
+                continue
+            # else:
+            #     print(f"[{message.id}] {message.sender} NOT IGNORED!!!! -> {message.receiver}"
+            #           f"\n\t[{since.hour}:{since.minute}:{since.second}]"
+            #           f"\n\t[{message.date.hour}:{message.date.minute}:{message.date.second}]")
+
+            if allowed_receivers and message.receiver not in allowed_receivers:
+                continue
+
+            if allowed_senders and message.sender not in allowed_senders:
                 continue
 
             if sender_regex and not re.search(
