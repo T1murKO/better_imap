@@ -12,8 +12,10 @@ class Service(BaseModel):
 
 
 class EmailMessage(BaseModel):
-    subject:  str | None = None
+    date:     datetime
+    id:       str
     text:     str
+    subject:  str | None = None
     sender:   str | None = None
     receiver: str | None = None
-    date: datetime
+    folder:   str
